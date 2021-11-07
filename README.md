@@ -45,3 +45,27 @@ Consiste em pegar um problema, dividi-lo em pequenas partes e resolver esses sub
     1. M[0,0] = 0
 2. Preencher a matriz da direta pra esquerda e de cima pra baixo usando o esquema de score de forma recursiva.
 3. Fazer o traceback.
+
+# Requisitos para execução
+
+1. Python
+
+    Pode ser instalado com o seguinte comando de terminal:
+    
+    `sudo apt-get install python3`
+    
+2. Numpy
+    
+    Pode ser instalado com o seguinte comando de terminal:
+    
+    `sudo apt-get install python3-numpy`
+
+# Instruções para execução
+
+Na pasta do módulo main.py, executar o seguinte comando no terminal:
+
+`python3 main.py`
+
+Inserir as sequências a serem alinhadas.
+
+O resultado mostrará o alinhamento das duas sequências e o score desse alinhamento.
