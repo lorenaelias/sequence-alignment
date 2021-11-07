@@ -4,17 +4,25 @@ import numpy as np
 # MISMATCH = -1
 # GAP = -2
 
+# MATCH = 1
+# MISMATCH = -1
+# GAP = -1
+
 MATCH = 5
 MISMATCH = -3
 GAP = -3
 
 def needleman_wunsch(seq1, seq2):
+  # para não dar erro na hora de percorrer preencher a matriz auxiliar
+  if seq2 > seq1:
+    seq1, seq2 = seq2, seq1
+
   # criação da matriz principal e de uma matriz auxiliar
   matriz = np.zeros((len(seq1)+1, len(seq2)+1))
 
   aux_match = np.zeros((len(seq1), len(seq2)))
 
-  # Preencher matriz auxiliar de acordo com os match ou mismatch
+  # Preenchimento da matriz auxiliar de acordo com o match ou mismatch
   for i in range(len(seq1)):
     for j in range(len(seq2)):
       if seq1[i] == seq2[j]:
@@ -22,92 +30,125 @@ def needleman_wunsch(seq1, seq2):
       else:
         aux_match[i][j] = MISMATCH
 
-  # print(aux_match)
-
-  # Preencher a matriz principal de acordo com o algoritmo de Needleman Wunsch
-  # Inicialização
+  # Preenchimento da primeira linha e primeira coluna
+  # para baixo e para direita é sempre atribuído o valor do gap
   for i in range(len(seq1)+1):
     matriz[i][0] = GAP * i
   for j in range(len(seq2)+1):
     matriz[0][j] = GAP * j
   
-  # Preenchimento da matriz
+  # Preenchimento do resto da matriz
   for i in range(1, len(seq1)+1):
     for j in range(1, len(seq2)+1):
       matriz[i][j] = max(matriz[i-1][j-1] + aux_match[i-1][j-1], 
                         matriz[i-1][j] + GAP, 
-                        matriz[i][j-1] + GAP)
+                        matriz[i][j-1] + GAP
+                        )
+      # print(matriz)
 
-  # print(matriz)
-
-  # Fazer o traceback
+  # guardar o alinhamento
   alinhada1 = ""
   alinhada2 = ""
-  score = 0
 
   tam_seq1 = len(seq1)
   tam_seq2 = len(seq2)
 
+  # inicialização do score
+  score = 0
+
+  # Fazer o traceback para encontrar a melhor alinhamento
+  # Começando pela posição mais a direita e mais abaixo
   while(tam_seq1 > 0 and tam_seq2 > 0):
 
-    print(seq1[tam_seq1-1], seq2[tam_seq2-1], aux_match[tam_seq1-1][tam_seq2-1])
-
-    if tam_seq1 > 0 and tam_seq2 > 0 and matriz[tam_seq1][tam_seq2] == matriz[tam_seq1-1][tam_seq2-1] + aux_match[tam_seq1-1][tam_seq2-1]:
+    # ver a diagonal (match ou mismatch)
+    if matriz[tam_seq1][tam_seq2] == matriz[tam_seq1-1][tam_seq2-1] + aux_match[tam_seq1-1][tam_seq2-1]:
       
       alinhada1 = seq1[tam_seq1-1] + alinhada1
       alinhada2 = seq2[tam_seq2-1] + alinhada2
+
+      if alinhada1[0] == alinhada2[0]:
+        score += MATCH
+      else:
+        score += MISMATCH
       
       tam_seq1 -= 1
       tam_seq2 -= 1
 
-      # print(seq1[tam_seq1-1], seq2[tam_seq2-1], aux_match[tam_seq1-1][tam_seq2-1])
-
-      if seq1[tam_seq1-1] == seq2[tam_seq2-1]:
-        score += MATCH
-      else:
-        score += MISMATCH
-
-    elif tam_seq1 > 0 and matriz[tam_seq1][tam_seq2] == matriz[tam_seq1-1, tam_seq2] + GAP:
+    # gap no alinhamento da seq2
+    elif matriz[tam_seq1][tam_seq2] == matriz[tam_seq1-1, tam_seq2] + GAP:
       
       alinhada1 = seq1[tam_seq1-1] + alinhada1
       alinhada2 = "-" + alinhada2
       tam_seq1 -= 1
 
-      # print(seq1[tam_seq1-1], seq2[tam_seq2-1], aux_match[tam_seq1-1][tam_seq2-1])
-
       score += GAP
 
+    # gap no alinhamento da seq1
     else:
       alinhada1 = "-" + alinhada1
       alinhada2 = seq2[tam_seq2-1] + alinhada2
       tam_seq2 -= 1
 
-      # print(seq1[tam_seq1-1], seq2[tam_seq2-1], aux_match[tam_seq1-1][tam_seq2-1])
-
       score += GAP
+    
+  # print(matriz)
 
   return alinhada1, alinhada2, score
 
 if __name__ == "__main__":
-  # pegar as sequencias
-  # sequencia1 = input("Sequência 1: ")
-  # sequencia2 = input("Sequência 2: ")
+  # ler as sequencias do usuário
+  sequencia1 = input("Sequência 1: ")
+  sequencia2 = input("Sequência 2: ")
 
-  sequencia1 = "TCGATTA"
-  sequencia2 = "CGTGCA"
+  # -------------SEQUÊNCIAS DE TESTE-------------
+  # sequencia1 = "TGGTG"
+  # sequencia2 = "ATCGT"
+  
+  # sequencia1 = "ATCG"
+  # sequencia2 = "TCG"
+
+  # sequencia1 = "HEAGAWGHEE"
+  # sequencia2 = "PAWHEAE"
+
+  # PARA OS SEGUINTES PARAMETROS
+  # MATCH = 1
+  # MISMATCH = -1
+  # GAP = -1
+  # sequencia1 = "GCATGCG"
+  # sequencia2 = "GATTACA"
 
   # sequencia1 = "ATCGT"
   # sequencia2 = "ACGT"
 
+
+  # PARA OS SEGUINTES PARAMETROS
+  # MATCH 5
+  # MISMATCH -3
+  # GAP -3
+
+  # sequencia1 = "TCGATTA"
+  # sequencia2 = "CGTGCA"
+  # score = 11
+
   # sequencia1 = "ATGTGGGCATCGTTACTGTCAGTAGTGACTCTTTTGTTTGCTTTAAGTGAATGTAGTATAGTAGGTGAAAATTACACATACTATTACCAGAGTCAGTTTAGGCCGCCTAATGGCTGGCATAAACATGGTGGAGCCTATCTTGTAACCAATGAAACTGACATATCCTATAATGGTGTGTCTTGTACTGTGGGTACAATAAAAGGCGGCATTGTCATTAATGAGAGTGCTATATCTTTTGTTACAAAAACACCCATTGCTTGGTCAGCCAACGGCGTTTGCACTACATATTGTAATTACTCCAGCTTATATGTGTTTGTTACCCATTGTGGGGGCAGCGGACATACTAGTTGTATTAAAATACAAATCGCATAGGCGAGATTGTTTTAGGTGTTAAAGACTTTTCTGGTAACTGGATTTATAATCGTACTATAAAGGCTATTGGTCCGTATAGTAAATTTACAGCCTGGCAATGTCTTGCTAATTTTACCAGTGTGTTTCTAAACGGCAACCTTGTGTATAGTTCTAACTTTACGGAGGATGTTGCAGCGGGTGGTGTTTATGCTAAAAGCGTCAATGGTCTAAAACGTAGAATTATGAAGGACACTGATGTTTTGGCATATTTTGTAAATGGCACTGCTGTTGAAGTGATTGTTTGTGATGACAGCCCTAGAGGTAGGTTAGCATGTCAGTATAATACAGGAAATTTTACTGATGGGTTATACCCTTTCGTAAGTTACAATGTAGTTAATAATAGTGTTGTTGTTTATGAGGTTATTAGTACTACAACTTATGGTAAACTTAACAACATTACTTTTCATAATGAAACTGGTGCACCACCTGCAGGTTCTAATGTTGCTAATTTTATTAAATATCAGACGCATGTGGTGCCTGAAGGTTTTGTTAGGCTCAATTTTTCTTTCTTGTCTACTTACAGGTATCAGGAGTCTGATTTTACTTATGGTTCTTATCATAAGGCTTGTAATTTTAGACTAGAAAGTATTAATAATGGTTTAATGTTTAATACTTTAAGTGTTTCTATTAGCTATGGACCACTTAAGGGTTCTTGTAAGCAGTCAGTATTTAATCGTAAAGCAACATGCTGTTATGCCTATAAATATCCCACTAATGGGGTTCAAGAGTGTAAGGGTGTTTATAATGGAGAACGCAATACTAAATTTGAATGCGGGCTTCTTGTATTTATAGACAAGACTGATGGTTCACGCATAATAACTGCAGAAAAACCACCTGTTTATACTACTAATTTTACTAATAATATTGTTGTTGGTAAGTGTGTTAATTATAATATTTATGGCAGGTATGGCCAAGGCGTCATTAGTAATATAACTACTGAAGCATTTGGATTTTTACAGGGAGATGGTTTGGTCATCTTGGACACTGCTGGTTCTATAGATATTTTTTCTGTTAAGGATGGGCCACTCACACATTATTACAAAATTAATCCTTGTAATGATGTAAATCAACAATATGTAGTGTCAGGAGGAAATATAGTTGGTCTTCTCACATCTAGTAATGAGACTGGCTCTATTCAGTTAGAAGATCAGTTTTATATTAAACTCACTAATAGCACTCGTAGGCATAGGAGA"
   # sequencia2 = "ATGTTGGCACAGTTACTGTTAGCAGTGACTCTTTTGTCTGCTTTAGGTGAATGTAGTATAGTAGGTGAAAATTACACATACTATTACCAGAGTCAGTTTAGACCGCCTAATGGCTGGCATAAACATGGTGGAGCCTATCTTGTAGTTAATGAAACTGATATATCCTATGATGCTGCGTCTTGTACTGTGGGTACAATAAAAGGCGGCATTGTCATTAATGAGAGTGCTATATCTTTTGTTACTAAAACACCTATTGCTTGGTCAGCTCAAGGCGTTTGCACTACATATTGTAATTATTCCAGCCTATATGTGTTTGTAACCCATTGTGGGGGCCGTGGACATAATAGTTGTATTATAAATACAAATCGCATAGGCGAGATTGTTTTAGGTGTTAAATCCTTTTCTGGTAACTGGATTTATAATCGCACTATACAGGCTACTGGTCCGTATAGTAAATTTACAGCCTGGCAATGTCTTGCTAATTTTACCAGTGTGTTTCTAAATGGCAACCTTGTGTATAGTTCTAACTTTACGGAGGATGTTGCAGCGGCTGGTGTTTATGCTAAAACAGTCAATGGTCTAAAACGTAGAATTATGAAGGACACTGATGTTTTGGCATATTTTGTAAATGGCACTGCTGTTGAAGTGATTGTTTGTGATGACAACCCTAAAGGTAGGTTAGCATGTCAGTATAATACAGGAAATTTTACTGATGGGTTATACCCTTTCGTAAGTAATAATGTAGTTAATGATAGTGTTGTTGTTTATGATGTTATTAGTACTACAACTTATGGTAAACTTAACAACATTACTTTCCATAATGAAACTAGTGCACCACCTGCAGGTTCTAATGTTGCTAATTTTATTAAATATCAGACGCATGTGTTGCCTGAAGGTTTTGTTAGGCTTAATTTTTCTTTCTTGTCTACTTACAGGTATCAGGAGTCTGATTTTACTTATGGTTCTTATCATAAGGCTTGTAATTTTAGACTAGAAAGTATTAATAATGGTTTAATGTTTAATACTTTAAGTGTTTCTATTAGCTATGGACCACTTAAGGGTTCTTGTAAGCAGTCAGTGTTTAATCATAAAGCAACGTGCTGTTATGCCTATAAATATCCCACTAATGGGGTTCAAGAGTGTAAGGGTGTTTATAATGGAGAACGCAATACTAAATTTGAATGCGGGCTTCTTGTATTTATAGACAAGACTGATGGTTCACGCATAATAACTGCAGAAAAACCACCTGTTTATACTACTAATTTTACTAATAATATTGTTGTTGGTAAGTGTGTTAATTATAATATTTATGGTAGGTATGGCCAAGGCGTCATTAGTAATGTAACTACTGAAGCATTTGGTTTTTTAGAGGGAGATGGTTTGGTCATCTTGGACACTGCTGGTTCTATAGATATTTTTGTTGTTAGGGATGGTCCATTCACACATTATTACAAGATTAATCCTTGTAATGATGTAAATCAACAATATGTAGTGTCAGGAGGAAATATAGTTGGTCTTCTCACATCTAGTAATGAGACTGGCTCTATTCAGTTAGAAGATCAGTTTTATATTAAACTCACTAATAGCACCCGTAGGCATCGGAGA"
+  # score = 7565
+
+  # sequencia1 = "ABCDEFGHIJKLM"
+  # sequencia2 = "NOPQRSTUVWXYZ"
+  # score = -39
+
+  # sequencia1 = "AAAAAAAAAAAAA"
+  # sequencia2 = "AAAAAAAAAAAAA"
+  # score = 65
 
   alinhada1, alinhada2, score = needleman_wunsch(sequencia1, sequencia2)
 
-  print("Sequência 1: " + sequencia1)
-  print("Sequência 2: " + sequencia2)
+  print("\nAlinhamento: ")
+  for i in range(len(alinhada1)):
+    if alinhada1[i*30:(i+1)*30] == '':
+      break
+    print(alinhada1[i*30:(i+1)*30])
+    print(alinhada2[i*30:(i+1)*30] + "\n")
 
-  print("Alinhamento: ")
-  print(alinhada1)
-  print(alinhada2)
-  print("Score: " + str(score))
+  print("\nSCORE: " + str(score))
